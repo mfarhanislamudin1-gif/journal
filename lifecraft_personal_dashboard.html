@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LifeCraft - Your Personal Dashboard</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Plus Jakarta Sans for UI, Playfair for Serif -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                    colors: {
+                        'brand-bg': '#090514', // Very dark purple/black
+                        'brand-surface': '#130B24', // Dark purple surface
+                        'brand-panel': 'rgba(23, 15, 35, 0.65)',
+                        'brand-accent': '#8B5CF6', // Violet 500
+                        'brand-accent-glow': 'rgba(139, 92, 246, 0.4)',
+                        'brand-text': '#E2E8F0', // Gray 200
+                        'brand-muted': '#94A3B8', // Gray 400
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #090514; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #4C1D95; /* Violet 900 */
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #8B5CF6; /* Violet 500 */
+        }
+        
+        body {
+            background-color: #090514;
+            /* Elegant dark radial gradient background */
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(76, 29, 149, 0.15), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.1), transparent 25%);
+            color: #E2E8F0;
+        }
+
+        .glass-panel {
+            background: rgba(19, 11, 36, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(139, 92, 246, 0.15);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .glass-panel:hover {
+            border-color: rgba(139, 92, 246, 0.3);
+            box-shadow: 0 8px 32px 0 rgba(139, 92, 246, 0.1);
+        }
+
+        /* Input fields global styling */
+        input, select, textarea {
+            background-color: rgba(9, 5, 20, 0.8) !important;
+            border: 1px solid rgba(139, 92, 246, 0.3) !important;
+            color: #F8FAFC !important;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none !important;
+            border-color: #A78BFA !important;
+            box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2) !important;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeInScale 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .tab-content.active {
+            display: block;
+        }
+        
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: translateY(10px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* Sidebar Nav Item Styling */
+        .nav-item.active {
+            background: linear-gradient(90deg, rgba(139, 92, 246, 0.15) 0%, transparent 100%);
+            color: #D8B4FE; /* Violet 300 */
+            font-weight: 600;
+            border-left: 3px solid #A78BFA;
+        }
+        
+        /* Checkbox styling */
+        .habit-checkbox:checked + label {
+            text-decoration: line-through;
+            color: #64748B;
+        }
+
+        /* Glowing text utility */
+        .text-glow {
+            text-shadow: 0 0 10px rgba(167, 139, 250, 0.5);
+        }
+    </style>
+</head>
+
+<body class="h-screen flex overflow-hidden antialiased selection:bg-purple-500/30 selection:text-purple-200">
+
+    <!-- Sidebar Navigation -->
+    <aside class="w-64 glass-panel border-r border-purple-900/30 flex flex-col z-20 h-full flex-shrink-0 transition-transform duration-300 md:translate-x-0 absolute md:relative -translate-x-full" id="sidebar">
+        <div class="p-6 flex items-center justify-between">
+            <h1 class="text-2xl font-serif font-bold text-white tracking-wide text-glow">Life<span class="text-purple-400">Craft</span></h1>
+            <button id="closeSidebarBtn" class="md:hidden text-gray-400 hover:text-white">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        
+        <nav class="flex-1 px-4 space-y-1.5 overflow-y-auto pb-6">
+            <a href="#" onclick="switchTab('dashboard')" class="nav-item active flex items-center px-4 py-3 text-gray-400 rounded-r-lg transition-all hover:text-purple-300 group" data-tab="dashboard">
+                <i class="fas fa-border-all w-6 text-center group-hover:text-purple-400 transition-colors"></i>
+                <span class="ml-3">Dashboard</span>
+            </a>
+            <a href="#" onclick="switchTab('schedule')" class="nav-item flex items-center px-4 py-3 text-gray-400 rounded-r-lg transition-all hover:text-purple-300 group" data-tab="schedule">
+                <i class="fas fa-calendar-check w-6 text-center group-hover:text-purple-400 transition-colors"></i>
+                <span class="ml-3">Jadwal Hari Ini</span>
+            </a>
+            
+            <div class="pt-5 pb-2">
+                <p class="px-4 text-[10px] font-bold text-purple-400/60 uppercase tracking-widest">Pembangunan Diri</p>
+            </div>
+            <a href="#" onclick="switchTab('habits')" class="nav-item flex items-center px-4 py-3 text-gray-400 rounded-r-lg transition-all hover:text-purple-300 group" data-tab="habits">
+                <i class="fas fa-seedling w-6 text-center group-hover:text-emerald-400 transition-colors"></i>
+                <span class="ml-3">Bangun Kebiasaan</span>
+            </a>
+            <a href="#" onclick="switchTab('bad-habits')" class="nav-item flex items-center px-4 py-3 text-gray-400 rounded-r-lg transition-all hover:text-purple-300 group" data-tab="bad-habits">
+                <i class="fas fa-fire-extinguisher w-6 text-center group-hover:text-rose-400 transition-colors"></i>
+                <span class="ml-3">Hentikan Kebiasaan</span>
+            </a>
+
+            <div class="pt-5 pb-2">
+                <p class="px-4 text-[10px] font-bold text-purple-400/60 uppercase tracking-widest">Manajemen Kekayaan</p>
+            </div>
+            <a href="#" onclick="switchTab('finance')" class="nav-item flex items-center px-4 py-3 text-gray-400 rounded-r-lg transition-all hover:text-purple-300 group" data-tab="finance">
+                <i class="fas fa-wallet w-6 text-center group-hover:text-amber-400 transition-colors"></i>
+                <span class="ml-3">Buku Kas & Aset</span>
+            </a>
+            <a href="#" onclick="switchTab('calculator')" class="nav-item flex items-center px-4 py-3 text-gray-400 rounded-r-lg transition-all hover:text-purple-300 group" data-tab="calculator">
+                <i class="fas fa-chart-line w-6 text-center group-hover:text-fuchsia-400 transition-colors"></i>
+                <span class="ml-3">Kalkulator Compounding</span>
+            </a>
+
+            <div class="pt-5 pb-2">
+                <p class="px-4 text-[10px] font-bold text-purple-400/60 uppercase tracking-widest">Pikiran & Jiwa</p>
+            </div>
+            <a href="#" onclick="switchTab('reflections')" class="nav-item flex items-center px-4 py-3 text-gray-400 rounded-r-lg transition-all hover:text-purple-300 group" data-tab="reflections">
+                <i class="fas fa-feather-alt w-6 text-center group-hover:text-cyan-400 transition-colors"></i>
+                <span class="ml-3">Refleksi & Jurnal</span>
+            </a>
+            <a href="#" onclick="switchTab('goals')" class="nav-item flex items-center px-4 py-3 text-gray-400 rounded-r-lg transition-all hover:text-purple-300 group" data-tab="goals">
+                <i class="fas fa-bullseye w-6 text-center group-hover:text-rose-400 transition-colors"></i>
+                <span class="ml-3">Tujuan & Mimpi</span>
+            </a>
+        </nav>
+        
+        <div class="p-4 border-t border-purple-900/30">
+            <button onclick="clearAllData()" class="w-full py-2.5 text-sm text-red-400 hover:bg-red-950/30 hover:text-red-300 rounded-lg transition-colors flex items-center justify-center border border-transparent hover:border-red-900/50">
+                <i class="fas fa-power-off mr-2"></i> Reset Data
+            </button>
+        </div>
+    </aside>
+
+    <!-- Overlay for mobile sidebar -->
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-10 hidden md:hidden" onclick="toggleSidebar()"></div>
+
+    <main class="flex-1 flex flex-col h-full overflow-hidden relative">
+        <!-- Header / Topbar -->
+        <header class="glass-panel border-b border-purple-900/30 px-6 py-5 flex justify-between items-center z-10 sticky top-0 rounded-none border-x-0 border-t-0">
+            <div class="flex items-center">
+                <button id="openSidebarBtn" class="md:hidden mr-4 text-purple-300 hover:text-white focus:outline-none" onclick="toggleSidebar()">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+                <div id="greeting" class="text-xl font-medium text-gray-100 tracking-wide">Selamat datang</div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="text-right hidden sm:block">
+                    <div id="current-time" class="text-xl font-bold text-white leading-none text-glow">00:00</div>
+                    <div id="current-date" class="text-xs text-purple-300/80 mt-1 uppercase tracking-widest">Tanggal</div>
+                </div>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto p-4 md:p-8 relative z-0">
+            
+            <div id="dashboard-tab" class="tab-content active max-w-5xl mx-auto">
+                <!-- Motivation Banner -->
+                <div class="bg-gradient-to-br from-indigo-900 via-purple-900 to-fuchsia-900 rounded-2xl p-8 mb-8 text-white shadow-2xl relative overflow-hidden border border-purple-500/20">
+                    <div class="absolute -top-10 -right-10 opacity-5 transform rotate-12">
+                        <i class="fas fa-yin-yang text-9xl"></i>
+                    </div>
+                    <div class="absolute inset-0 bg-black/20"></div> <!-- Dim overlay -->
+                    <div class="relative z-10">
+                        <h2 class="text-xs font-bold tracking-widest uppercase mb-3 text-purple-300">Kutipan Hari Ini</h2>
+                        <p id="motivation-quote" class="text-2xl md:text-3xl font-serif italic font-medium leading-relaxed drop-shadow-md">"Kesuksesan adalah hasil dari kesempurnaan, kerja keras, belajar dari kegagalan, loyalitas, dan kegigihan."</p>
+                        <p id="motivation-author" class="mt-4 text-purple-200 font-medium">- Colin Powell</p>
+                        <button onclick="changeQuote()" class="mt-6 text-sm bg-white/10 hover:bg-white/20 px-5 py-2.5 rounded-full backdrop-blur-md transition-all border border-white/10 hover:border-white/30 text-white">
+                            <i class="fas fa-sync-alt mr-2"></i>Ganti Kutipan
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Quick Schedule Widget -->
+                    <div class="glass-panel rounded-2xl p-6 flex flex-col">
+                        <div class="flex justify-between items-center mb-5 border-b border-purple-900/30 pb-3">
+                            <h3 class="text-lg font-semibold text-gray-100"><i class="fas fa-calendar-day text-purple-400 mr-2"></i>Fokus Hari Ini</h3>
+                            <button onclick="switchTab('schedule')" class="text-sm text-purple-400 hover:text-purple-300 transition-colors">Lihat</button>
+                        </div>
+                        <div id="dashboard-schedule-list" class="space-y-3 flex-1">
+                            <p class="text-sm text-gray-500 italic">Belum ada jadwal hari ini.</p>
+                        </div>
+                    </div>
+
+                    <!-- Financial Summary Widget -->
+                    <div class="glass-panel rounded-2xl p-6">
+                        <div class="flex justify-between items-center mb-5 border-b border-purple-900/30 pb-3">
+                            <h3 class="text-lg font-semibold text-gray-100"><i class="fas fa-wallet text-emerald-400 mr-2"></i>Keuangan</h3>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="p-3 bg-emerald-950/30 border border-emerald-900/50 rounded-xl flex justify-between items-center">
+                                <span class="text-sm text-gray-400">Pemasukan</span>
+                                <span class="font-semibold text-emerald-400" id="dash-total-income">Rp 0</span>
+                            </div>
+                            <div class="p-3 bg-rose-950/30 border border-rose-900/50 rounded-xl flex justify-between items-center">
+                                <span class="text-sm text-gray-400">Pengeluaran</span>
+                                <span class="font-semibold text-rose-400" id="dash-total-expense">Rp 0</span>
+                            </div>
+                            <div class="pt-3 flex justify-between items-center px-1">
+                                <span class="text-sm font-medium text-purple-300">Total Saldo Aktif</span>
+                                <span class="font-bold text-white" id="dash-balance">Rp 0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Habits Widget -->
+                    <div class="glass-panel rounded-2xl p-6 lg:col-span-1 md:col-span-2">
+                        <div class="flex justify-between items-center mb-5 border-b border-purple-900/30 pb-3">
+                            <h3 class="text-lg font-semibold text-gray-100"><i class="fas fa-seedling text-cyan-400 mr-2"></i>Ceklis Kebiasaan</h3>
+                            <button onclick="switchTab('habits')" class="text-sm text-purple-400 hover:text-purple-300 transition-colors">Kelola</button>
+                        </div>
+                        <div id="dashboard-habit-list" class="space-y-2">
+                            <p class="text-sm text-gray-500 italic">Belum ada kebiasaan yang dilacak.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="schedule-tab" class="tab-content max-w-3xl mx-auto">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-serif font-bold text-white mb-2 text-glow">Jadwal Hari Ini</h2>
+                    <p class="text-purple-300">Rencanakan harimu, eksekusi dengan presisi.</p>
+                </div>
+
+                <div class="glass-panel rounded-2xl p-6 mb-6">
+                    <form id="schedule-form" class="flex flex-col sm:flex-row gap-3 mb-6">
+                        <input type="text" id="schedule-input" placeholder="Tambahkan tugas baru..." class="flex-1 text-sm rounded-xl block w-full p-3 transition-all">
+                        <input type="time" id="schedule-time" class="text-sm rounded-xl p-3 w-full sm:w-32 transition-all">
+                        <button type="submit" class="text-white bg-purple-600 hover:bg-purple-500 font-medium rounded-xl text-sm w-full sm:w-auto px-6 py-3 text-center shadow-lg shadow-purple-900/20 transition-all">Tambah</button>
+                    </form>
+
+                    <ul id="schedule-list" class="space-y-3">
+                        <!-- List items injected here -->
+                    </ul>
+                </div>
+            </div>
+
+            <div id="habits-tab" class="tab-content max-w-4xl mx-auto">
+                 <div class="mb-8">
+                    <h2 class="text-3xl font-serif font-bold text-white mb-2 text-glow">Bangun Kebiasaan</h2>
+                    <p class="text-purple-300">Konsistensi adalah kunci. Lacak perkembanganmu setiap hari.</p>
+                </div>
+
+                <div class="glass-panel rounded-2xl p-6 mb-6 border-t-4 border-t-cyan-500/50">
+                    <form id="habit-form" class="flex flex-col sm:flex-row gap-3 mb-6">
+                        <input type="text" id="habit-input" placeholder="Nama kebiasaan baru (ex: Baca 10 Halaman, Lari 15 mnt)..." class="flex-1 text-sm rounded-xl block w-full p-3 focus:border-cyan-400 focus:ring-cyan-400">
+                        <button type="submit" class="text-white bg-cyan-600 hover:bg-cyan-500 font-medium rounded-xl text-sm px-6 py-3 text-center shadow-lg shadow-cyan-900/20 transition-all whitespace-nowrap">Tambah Kebiasaan</button>
+                    </form>
+
+                    <div class="overflow-x-auto rounded-xl border border-purple-900/30">
+                        <table class="w-full text-sm text-left text-gray-300">
+                            <thead class="text-xs text-purple-200 uppercase bg-[#18112A] border-b border-purple-900/50">
+                                <tr>
+                                    <th scope="col" class="px-6 py-4">Nama Kebiasaan</th>
+                                    <th scope="col" class="px-6 py-4 text-center">Aksi (Hari Ini)</th>
+                                    <th scope="col" class="px-6 py-4 text-center">Streak</th>
+                                    <th scope="col" class="px-6 py-4 text-right">Hapus</th>
+                                </tr>
+                            </thead>
+                            <tbody id="habit-table-body" class="divide-y divide-purple-900/30">
+                                <!-- Habit rows injected here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="bad-habits-tab" class="tab-content max-w-4xl mx-auto">
+                <div class="mb-8">
+                    <h2 class="text-3xl font-serif font-bold text-white mb-2 text-glow">Hentikan Kebiasaan Buruk</h2>
+                    <p class="text-purple-300">Sadarilah apa yang menahan potensimu. Pantau hari bersihmu.</p>
+                </div>
+
+                <div class="glass-panel rounded-2xl p-6 mb-6 border-t-4 border-t-rose-500/50">
+                    <form id="bad-habit-form" class="flex flex-col sm:flex-row gap-3 mb-8">
+                        <input type="text" id="bad-habit-input" placeholder="Kebiasaan yang ingin dihentikan (ex: Merokok, Doom Scrolling)..." class="flex-1 text-sm rounded-xl block w-full p-3 focus:border-rose-400 focus:ring-rose-400">
+                        <button type="submit" class="text-white bg-rose-600 hover:bg-rose-500 font-medium rounded-xl text-sm px-6 py-3 text-center shadow-lg shadow-rose-900/20 transition-all whitespace-nowrap">Mulai Pantau</button>
+                    </form>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5" id="bad-habit-list">
+                        <!-- Bad habits cards injected here -->
+                    </div>
+                </div>
+            </div>
+
+            <div id="finance-tab" class="tab-content max-w-5xl mx-auto">
+                 <div class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+                    <div>
+                        <h2 class="text-3xl font-serif font-bold text-white mb-2 text-glow">Buku Kas & Aset</h2>
+                        <p class="text-purple-300">Kelola arus kas, tabungan, dan alokasi masa depan.</p>
+                    </div>
+                    <div class="text-left md:text-right bg-[#130B24] border border-purple-500/30 px-6 py-3 rounded-2xl shadow-lg">
+                        <p class="text-xs text-purple-400 uppercase tracking-widest font-bold mb-1">Total Kekayaan Bersih</p>
+                        <p class="text-2xl font-bold text-white" id="net-worth-display">Rp 0</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                    <!-- Form Entry -->
+                    <div class="glass-panel rounded-2xl p-6 lg:col-span-1 h-fit border-t-4 border-t-amber-500/50">
+                        <h3 class="text-lg font-semibold text-white border-b border-purple-900/50 pb-3 mb-5">Catat Transaksi</h3>
+                        <form id="finance-form" class="space-y-5">
+                            <div>
+                                <label class="block mb-1.5 text-sm font-medium text-gray-300">Jenis</label>
+                                <select id="fin-type" class="text-sm rounded-xl block w-full p-3 focus:border-amber-400 focus:ring-amber-400">
+                                    <option value="income">Uang Masuk (Income)</option>
+                                    <option value="expense">Uang Keluar (Expense)</option>
+                                    <option value="savings">Masuk Tabungan</option>
+                                    <option value="emergency">Masuk Dana Darurat</option>
+                                    <option value="invest">Masuk Investasi</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block mb-1.5 text-sm font-medium text-gray-300">Keterangan</label>
+                                <input type="text" id="fin-desc" required class="text-sm rounded-xl block w-full p-3 focus:border-amber-400 focus:ring-amber-400" placeholder="Gaji, Makan, Nabung...">
+                            </div>
+                            <div>
+                                <label class="block mb-1.5 text-sm font-medium text-gray-300">Nominal (Rp)</label>
+                                <input type="number" id="fin-amount" required min="0" class="text-sm rounded-xl block w-full p-3 focus:border-amber-400 focus:ring-amber-400" placeholder="50000">
+                            </div>
+                            <button type="submit" class="w-full text-amber-900 bg-amber-400 hover:bg-amber-300 font-bold rounded-xl text-sm px-5 py-3.5 text-center transition-all shadow-lg shadow-amber-900/20 mt-2">Simpan Transaksi</button>
+                        </form>
+                    </div>
+
+                    <!-- Summary & Recent Transactions -->
+                    <div class="lg:col-span-2 space-y-6">
+                        <!-- Asset Summary Cards -->
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div class="bg-[#130B24] rounded-2xl p-5 border border-purple-500/20 shadow-lg relative overflow-hidden group">
+                                <div class="absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform"><i class="fas fa-wallet text-6xl text-white"></i></div>
+                                <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-2">Kas Harian</p>
+                                <p class="text-lg font-bold text-white relative z-10" id="summary-cash">Rp 0</p>
+                            </div>
+                            <div class="bg-[#130B24] rounded-2xl p-5 border border-blue-500/30 shadow-lg relative overflow-hidden group">
+                                <div class="absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform"><i class="fas fa-piggy-bank text-6xl text-blue-400"></i></div>
+                                <p class="text-[10px] text-blue-400 uppercase tracking-widest font-bold mb-2">Tabungan</p>
+                                <p class="text-lg font-bold text-white relative z-10" id="summary-savings">Rp 0</p>
+                            </div>
+                            <div class="bg-[#130B24] rounded-2xl p-5 border border-amber-500/30 shadow-lg relative overflow-hidden group">
+                                <div class="absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform"><i class="fas fa-medkit text-6xl text-amber-400"></i></div>
+                                <p class="text-[10px] text-amber-400 uppercase tracking-widest font-bold mb-2">Dana Darurat</p>
+                                <p class="text-lg font-bold text-white relative z-10" id="summary-emergency">Rp 0</p>
+                            </div>
+                            <div class="bg-[#130B24] rounded-2xl p-5 border border-fuchsia-500/30 shadow-lg relative overflow-hidden group">
+                                <div class="absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform"><i class="fas fa-chart-pie text-6xl text-fuchsia-400"></i></div>
+                                <p class="text-[10px] text-fuchsia-400 uppercase tracking-widest font-bold mb-2">Investasi</p>
+                                <p class="text-lg font-bold text-white relative z-10" id="summary-invest">Rp 0</p>
+                            </div>
+                        </div>
+
+                        <!-- Transaction History -->
+                        <div class="glass-panel rounded-2xl p-6 h-[calc(100%-110px)] flex flex-col">
+                            <div class="flex justify-between items-center border-b border-purple-900/50 pb-3 mb-4">
+                                <h3 class="text-lg font-semibold text-white">Riwayat Transaksi</h3>
+                                <button onclick="clearFinanceHistory()" class="text-xs text-rose-400 hover:text-rose-300 bg-rose-950/30 px-3 py-1.5 rounded-lg transition-colors"><i class="fas fa-trash-alt mr-1.5"></i>Bersihkan</button>
+                            </div>
+                            <div class="overflow-y-auto flex-1 pr-2" id="finance-history-container">
+                                <ul id="finance-list" class="space-y-3">
+                                    <!-- History items injected here -->
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="calculator-tab" class="tab-content max-w-4xl mx-auto">
+                 <div class="mb-8">
+                    <h2 class="text-3xl font-serif font-bold text-white mb-2 text-glow">Kalkulator Compounding</h2>
+                    <p class="text-purple-300">Proyeksikan pertumbuhan kekayaanmu dari waktu ke waktu melalui keajaiban bunga berbunga.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="glass-panel rounded-2xl p-6 border-t-4 border-t-fuchsia-500/50">
+                        <form id="calc-form" class="space-y-5">
+                            <div>
+                                <label class="block mb-1.5 text-sm font-medium text-gray-300">Modal Awal (Rp)</label>
+                                <input type="number" id="calc-principal" required class="text-sm rounded-xl block w-full p-3 focus:border-fuchsia-400 focus:ring-fuchsia-400" value="10000000">
+                            </div>
+                            <div>
+                                <label class="block mb-1.5 text-sm font-medium text-gray-300">Kontribusi Bulanan (Rp)</label>
+                                <input type="number" id="calc-monthly" required class="text-sm rounded-xl block w-full p-3 focus:border-fuchsia-400 focus:ring-fuchsia-400" value="1000000">
+                            </div>
+                            <div>
+                                <label class="block mb-1.5 text-sm font-medium text-gray-300">Estimasi Return per Tahun (%)</label>
+                                <input type="number" id="calc-rate" required step="0.1" class="text-sm rounded-xl block w-full p-3 focus:border-fuchsia-400 focus:ring-fuchsia-400" value="8">
+                            </div>
+                            <div>
+                                <label class="block mb-1.5 text-sm font-medium text-gray-300">Jangka Waktu (Tahun)</label>
+                                <input type="number" id="calc-years" required min="1" class="text-sm rounded-xl block w-full p-3 focus:border-fuchsia-400 focus:ring-fuchsia-400" value="10">
+                            </div>
+                            <button type="button" onclick="calculateCompound()" class="w-full text-white bg-fuchsia-600 hover:bg-fuchsia-500 font-bold rounded-xl text-sm px-5 py-3.5 text-center transition-all shadow-lg shadow-fuchsia-900/20 mt-4">Hitung Proyeksi</button>
+                        </form>
+                    </div>
+
+                    <div class="glass-panel rounded-2xl p-8 flex flex-col justify-center items-center text-center bg-gradient-to-b from-[#180F2E] to-[#0B0716] border border-fuchsia-500/20">
+                        <div class="w-20 h-20 rounded-full bg-fuchsia-900/30 flex items-center justify-center mb-6 border border-fuchsia-500/30 shadow-[0_0_30px_rgba(192,38,211,0.2)]">
+                            <i class="fas fa-chart-line text-3xl text-fuchsia-400"></i>
+                        </div>
+                        <h3 class="text-sm font-bold uppercase tracking-widest text-gray-400 mb-3">Estimasi Nilai Investasi</h3>
+                        <div id="calc-result" class="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-400 to-purple-400 mb-6 drop-shadow-sm">Rp 0</div>
+                        
+                        <div class="w-full space-y-4 mt-2 text-sm border-t border-purple-900/50 pt-6">
+                            <div class="flex justify-between items-center text-gray-300">
+                                <span>Total Modal Disetor</span>
+                                <span id="calc-total-invested" class="font-bold text-white bg-purple-900/40 px-3 py-1 rounded-lg">Rp 0</span>
+                            </div>
+                            <div class="flex justify-between items-center text-gray-300">
+                                <span>Total Bunga Didapat</span>
+                                <span id="calc-total-interest" class="font-bold text-emerald-400 bg-emerald-950/30 border border-emerald-900/50 px-3 py-1 rounded-lg">Rp 0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="reflections-tab" class="tab-content max-w-4xl mx-auto">
+                <div class="mb-8 flex justify-between items-end">
+                    <div>
+                        <h2 class="text-3xl font-serif font-bold text-white mb-2 text-glow">Jurnal & Refleksi</h2>
+                        <p class="text-purple-300">Tumpahkan isi pikiranmu, catat evaluasi dan pelajaran hari ini.</p>
+                    </div>
+                    <button onclick="newJournalEntry()" class="text-white bg-purple-600 hover:bg-purple-500 font-medium rounded-xl text-sm px-5 py-2.5 shadow-lg shadow-purple-900/20 transition-all flex items-center">
+                        <i class="fas fa-pen-nib mr-2"></i> Tulis Jurnal
+                    </button>
+                </div>
+
+                <div id="journal-form-container" class="glass-panel rounded-2xl p-6 mb-8 hidden border-l-4 border-l-purple-500">
+                    <input type="text" id="journal-title" placeholder="Judul entri (opsional)..." class="mb-5 bg-transparent border-0 border-b-2 border-purple-900/50 text-white text-xl font-serif focus:ring-0 focus:border-purple-400 block w-full p-2 outline-none transition-colors">
+                    <textarea id="journal-content" rows="6" placeholder="Apa yang kamu pikirkan atau pelajari hari ini? Apakah ada yang perlu dievaluasi?" class="block p-4 w-full text-sm text-gray-200 bg-[#0F0A1A] rounded-xl border border-purple-900/50 focus:ring-purple-500 focus:border-purple-500 resize-y"></textarea>
+                    <div class="flex justify-end gap-3 mt-5">
+                        <button onclick="cancelJournal()" class="text-gray-400 bg-[#1A1425] hover:bg-[#251C35] font-medium rounded-xl text-sm px-6 py-2.5 transition-colors border border-purple-900/30">Batal</button>
+                        <button onclick="saveJournal()" class="text-white bg-purple-600 hover:bg-purple-500 font-medium rounded-xl text-sm px-6 py-2.5 shadow-lg shadow-purple-900/20 transition-all">Simpan Jurnal</button>
+                    </div>
+                </div>
+
+                <div id="journal-list" class="space-y-5">
+                    <!-- Journal entries injected here -->
+                </div>
+            </div>
+
+            <div id="goals-tab" class="tab-content max-w-5xl mx-auto">
+                 <div class="mb-8">
+                    <h2 class="text-3xl font-serif font-bold text-white mb-2 text-glow">Tujuan & Visi Besar</h2>
+                    <p class="text-purple-300">Tetapkan target jangka pendek dan visualisasikan mimpimu yang paling liar.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                    <!-- Monthly Goals -->
+                    <div class="glass-panel rounded-2xl p-6 lg:col-span-2 border-t-4 border-t-cyan-500/50 flex flex-col h-fit">
+                        <h3 class="text-xl font-bold text-white mb-2 flex items-center"><i class="fas fa-crosshairs text-cyan-400 mr-3"></i>Target Bulan Ini</h3>
+                        <p class="text-xs text-gray-400 mb-5">Fokus pada apa yang penting dalam 30 hari ke depan.</p>
+                        
+                        <form id="goal-form" class="flex gap-2 mb-5">
+                            <input type="text" id="goal-input" placeholder="Tujuan bulan ini..." class="flex-1 text-sm rounded-xl p-3 focus:border-cyan-400 focus:ring-cyan-400">
+                            <button type="submit" class="bg-cyan-900/40 text-cyan-400 border border-cyan-700/50 hover:bg-cyan-800/50 px-4 rounded-xl transition-colors"><i class="fas fa-plus"></i></button>
+                        </form>
+                        <ul id="goal-list" class="space-y-2 overflow-y-auto max-h-[400px] pr-2">
+                             <!-- Goals injected here -->
+                        </ul>
+                    </div>
+
+                    <!-- Dreams / Vision -->
+                    <div class="glass-panel rounded-2xl p-0 lg:col-span-3 flex flex-col border border-purple-500/20 overflow-hidden relative">
+                        <!-- Decorative top bar -->
+                        <div class="h-2 bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 w-full"></div>
+                        
+                        <div class="p-6 flex-1 flex flex-col">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <h3 class="text-xl font-bold text-white flex items-center"><i class="fas fa-meteor text-fuchsia-400 mr-3"></i>Manifestasi Mimpi</h3>
+                                    <p class="text-xs text-gray-400 mt-1">Tuliskan visi besarmu tanpa batasan. Bayangkan sudah terjadi.</p>
+                                </div>
+                                <span id="dreams-save-status" class="text-xs bg-emerald-950/50 text-emerald-400 border border-emerald-900/50 px-3 py-1 rounded-full opacity-0 transition-opacity duration-300">Tersimpan</span>
+                            </div>
+                            
+                            <textarea id="dreams-textarea" class="flex-1 p-5 w-full text-purple-100 bg-[#0A0612]/80 rounded-xl border border-purple-900/50 focus:ring-fuchsia-500 focus:border-fuchsia-500 resize-none font-serif text-lg leading-relaxed shadow-inner placeholder-purple-800/50 min-h-[300px]" placeholder="Di masa depan, aku...&#10;&#10;Contoh: &#10;- Memiliki kebebasan finansial di usia 40&#10;- Membangun panti asuhan&#10;- Menjelajahi dunia dengan orang tersayang..."></textarea>
+                            
+                            <div class="flex justify-end mt-4">
+                                <button onclick="saveDreams()" class="text-white bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-500 hover:to-fuchsia-500 font-bold rounded-xl text-sm px-8 py-3 transition-all shadow-[0_0_15px_rgba(192,38,211,0.3)]">Manifestasikan Simpanan</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer spacer -->
+            <div class="h-12"></div>
+        </div>
+    </main>
+
+    <!-- Modal Message Box -->
+    <div id="message-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-panel border-purple-500/40 rounded-2xl p-8 max-w-sm w-full transform scale-95 opacity-0 transition-all duration-300 shadow-[0_0_50px_rgba(139,92,246,0.15)]" id="message-modal-content">
+            <div class="w-12 h-12 rounded-full bg-purple-900/50 border border-purple-500/30 flex items-center justify-center mb-4">
+                <i class="fas fa-bell text-purple-400 text-xl"></i>
+            </div>
+            <h3 id="message-title" class="text-xl font-bold text-white mb-2">Notifikasi</h3>
+            <p id="message-text" class="text-gray-300 mb-8 leading-relaxed">Pesan di sini.</p>
+            <div class="flex justify-end">
+                <button onclick="closeMessageModal()" class="bg-purple-600 text-white font-medium px-6 py-2.5 rounded-xl hover:bg-purple-500 transition-colors shadow-lg shadow-purple-900/20">Mengerti</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. STATE MANAGEMENT ---
+        const initialState = {
+            schedule: [],
+            habits: [],
+            badHabits: [],
+            finance: { transactions: [], cash: 0, savings: 0, emergency: 0, invest: 0 },
+            journals: [],
+            goals: [],
+            dreams: ""
+        };
+
+        let appData = JSON.parse(localStorage.getItem('lifeCraftData')) || initialState;
+
+        function saveData() {
+            localStorage.setItem('lifeCraftData', JSON.stringify(appData));
+            updateDashboardWidgets();
+        }
+
+        // Custom Alert/Message Box
+        function showMessage(title, text) {
+            const modal = document.getElementById('message-modal');
+            const content = document.getElementById('message-modal-content');
+            document.getElementById('message-title').innerText = title;
+            document.getElementById('message-text').innerText = text;
+            
+            modal.classList.remove('hidden');
+            // Small delay to allow display:block to apply before animating opacity
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 20);
+        }
+
+        function closeMessageModal() {
+            const modal = document.getElementById('message-modal');
+            const content = document.getElementById('message-modal-content');
+            
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        const formatRp = (num) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(num);
+        const generateId = () => Date.now().toString(36) + Math.random().toString(36).substring(2);
+
+        // --- 2. UI & NAVIGATION LOGIC ---
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            
+            if (sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            }
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+                if(item.dataset.tab === tabId) item.classList.add('active');
+            });
+
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(`${tabId}-tab`).classList.add('active');
+
+            if(window.innerWidth < 768) toggleSidebar();
+        }
+
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('current-time').innerText = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('current-date').innerText = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+            const hour = now.getHours();
+            let greeting = 'Selamat ';
+            if (hour >= 5 && hour < 12) greeting += 'Pagi';
+            else if (hour >= 12 && hour < 15) greeting += 'Siang';
+            else if (hour >= 15 && hour < 18) greeting += 'Sore';
+            else greeting += 'Malam';
+            document.getElementById('greeting').innerText = greeting;
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        const quotes = [
+            { t: "Kekuatan tidak datang dari apa yang bisa kamu lakukan. Kekuatan datang dari mengatasi hal-hal yang pernah kamu pikir tidak bisa kamu lakukan.", a: "Rikki Rogers" },
+            { t: "Disiplin adalah memilih antara apa yang kamu inginkan sekarang, dan apa yang paling kamu inginkan nanti.", a: "Abraham Lincoln" },
+            { t: "Jangan takut untuk melepaskan yang baik untuk mencapai yang luar biasa.", a: "John D. Rockefeller" },
+            { t: "Kesuksesan bukanlah akhir, kegagalan bukanlah hal yang fatal: Keberanian untuk melanjutkan yang paling penting.", a: "Winston Churchill" },
+            { t: "Masa depan adalah milik mereka yang percaya pada keindahan mimpi mereka.", a: "Eleanor Roosevelt" }
+        ];
+
+        function changeQuote() {
+            const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
+            const quoteEl = document.getElementById('motivation-quote');
+            const authorEl = document.getElementById('motivation-author');
+            quoteEl.style.opacity = 0;
+            authorEl.style.opacity = 0;
+            setTimeout(() => {
+                quoteEl.innerText = `"${randomQuote.t}"`;
+                authorEl.innerText = `- ${randomQuote.a}`;
+                quoteEl.style.opacity = 1;
+                authorEl.style.opacity = 1;
+                quoteEl.style.transition = 'opacity 0.5s ease';
+                authorEl.style.transition = 'opacity 0.5s ease';
+            }, 300);
+        }
+
+        // --- 3. SCHEDULE LOGIC ---
+        const scheduleForm = document.getElementById('schedule-form');
+        const scheduleInput = document.getElementById('schedule-input');
+        const scheduleTime = document.getElementById('schedule-time');
+        const scheduleList = document.getElementById('schedule-list');
+
+        function renderSchedule() {
+            scheduleList.innerHTML = '';
+            const sortedSchedule = [...appData.schedule].sort((a, b) => {
+                if(!a.time) return 1; if(!b.time) return -1;
+                return a.time.localeCompare(b.time);
+            });
+
+            sortedSchedule.forEach(task => {
+                const li = document.createElement('li');
+                // Dark theme styling for list items
+                li.className = `flex items-center justify-between p-3.5 rounded-xl border ${task.done ? 'bg-[#0E0A17] border-purple-900/20 opacity-60' : 'bg-[#150D26] border-purple-500/20 shadow-md'} transition-all`;
+                
+                li.innerHTML = `
+                    <div class="flex items-center gap-3.5 flex-1 overflow-hidden">
+                        <div class="relative flex items-center">
+                            <input type="checkbox" id="task-${task.id}" ${task.done ? 'checked' : ''} onchange="toggleTask('${task.id}')" class="w-5 h-5 text-purple-600 bg-[#0A0612] border-purple-500/50 rounded focus:ring-purple-500 cursor-pointer">
+                        </div>
+                        <label for="task-${task.id}" class="flex-1 cursor-pointer truncate ${task.done ? 'line-through text-gray-500' : 'text-gray-200 font-medium'}">
+                            ${task.text}
+                        </label>
+                        ${task.time ? `<span class="text-xs font-bold px-3 py-1 rounded-lg ${task.done ? 'bg-[#0A0612] text-gray-500' : 'bg-purple-900/40 text-purple-300 border border-purple-500/20'}"><i class="far fa-clock mr-1.5"></i>${task.time}</span>` : ''}
+                    </div>
+                    <button onclick="deleteTask('${task.id}')" class="ml-4 text-gray-500 hover:text-rose-400 transition-colors p-2 rounded-lg hover:bg-rose-950/30"><i class="fas fa-trash-alt"></i></button>
+                `;
+                scheduleList.appendChild(li);
+            });
+            updateDashboardWidgets();
+        }
+
+        scheduleForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (scheduleInput.value.trim()) {
+                appData.schedule.push({ id: generateId(), text: scheduleInput.value.trim(), time: scheduleTime.value, done: false });
+                scheduleInput.value = ''; scheduleTime.value = '';
+                saveData(); renderSchedule();
+            }
+        });
+
+        function toggleTask(id) {
+            const task = appData.schedule.find(t => t.id === id);
+            if (task) { task.done = !task.done; saveData(); renderSchedule(); }
+        }
+
+        function deleteTask(id) {
+            appData.schedule = appData.schedule.filter(t => t.id !== id);
+            saveData(); renderSchedule();
+        }
+
+        // --- 4. HABIT TRACKER LOGIC ---
+        const habitForm = document.getElementById('habit-form');
+        const habitInput = document.getElementById('habit-input');
+        const habitTableBody = document.getElementById('habit-table-body');
+        const getTodayStr = () => new Date().toISOString().split('T')[0];
+
+        function renderHabits() {
+            habitTableBody.innerHTML = '';
+            const today = getTodayStr();
+
+            appData.habits.forEach(habit => {
+                const isDoneToday = habit.history.includes(today);
+                const tr = document.createElement('tr');
+                tr.className = 'bg-[#130B24]/50 hover:bg-[#180F2E] transition-colors';
+                
+                tr.innerHTML = `
+                    <th scope="row" class="px-6 py-4 font-medium text-gray-200 whitespace-nowrap">
+                        ${habit.name}
+                    </th>
+                    <td class="px-6 py-4 text-center">
+                        <button onclick="toggleHabit('${habit.id}')" class="w-10 h-10 rounded-xl flex items-center justify-center mx-auto transition-all ${isDoneToday ? 'bg-cyan-900/40 text-cyan-400 border border-cyan-500/50 shadow-[0_0_15px_rgba(6,182,212,0.3)]' : 'bg-[#0A0612] text-gray-600 hover:text-cyan-400 hover:border-cyan-500/30 border border-purple-900/50'}">
+                            <i class="fas ${isDoneToday ? 'fa-check' : 'fa-power-off'} text-lg"></i>
+                        </button>
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                        <span class="bg-[#0A0612] text-white text-xs font-bold px-3 py-1.5 rounded-lg border border-purple-900/50 inline-flex items-center">
+                            <i class="fas fa-fire text-fuchsia-500 mr-2"></i>${habit.streak || 0}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 text-right">
+                        <button onclick="deleteHabit('${habit.id}')" class="text-gray-500 hover:text-rose-400 p-2 rounded-lg hover:bg-rose-950/30 transition-colors"><i class="fas fa-times text-lg"></i></button>
+                    </td>
+                `;
+                habitTableBody.appendChild(tr);
+            });
+        }
+
+        habitForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (habitInput.value.trim()) {
+                appData.habits.push({ id: generateId(), name: habitInput.value.trim(), history: [], streak: 0 });
+                habitInput.value = ''; saveData(); renderHabits();
+            }
+        });
+
+        function toggleHabit(id) {
+            const habit = appData.habits.find(h => h.id === id);
+            const today = getTodayStr();
+            if (habit) {
+                if (habit.history.includes(today)) {
+                    habit.history = habit.history.filter(d => d !== today);
+                    habit.streak = Math.max(0, habit.streak - 1);
+                } else {
+                    habit.history.push(today); habit.streak += 1;
+                }
+                saveData(); renderHabits();
+            }
+        }
+
+        function deleteHabit(id) {
+            appData.habits = appData.habits.filter(h => h.id !== id);
+            saveData(); renderHabits();
+        }
+
+        // --- BAD HABITS LOGIC ---
+        const badHabitForm = document.getElementById('bad-habit-form');
+        const badHabitInput = document.getElementById('bad-habit-input');
+        const badHabitList = document.getElementById('bad-habit-list');
+
+        function renderBadHabits() {
+            badHabitList.innerHTML = '';
+            appData.badHabits.forEach(habit => {
+                const startDate = new Date(habit.startDate);
+                const diffDays = Math.floor(Math.abs(new Date() - startDate) / (1000 * 60 * 60 * 24));
+
+                const div = document.createElement('div');
+                div.className = 'bg-[#150B1B] p-5 rounded-2xl border border-rose-900/30 shadow-lg flex flex-col justify-between relative overflow-hidden';
+                div.innerHTML = `
+                    <div class="absolute -right-4 -top-4 opacity-5"><i class="fas fa-ban text-8xl text-rose-500"></i></div>
+                    <div class="flex justify-between items-start mb-4 relative z-10">
+                        <h4 class="font-bold text-gray-200 text-lg">${habit.name}</h4>
+                        <button onclick="deleteBadHabit('${habit.id}')" class="text-gray-500 hover:text-rose-400 bg-[#0A0612] w-8 h-8 rounded-lg flex items-center justify-center transition-colors"><i class="fas fa-trash-alt text-sm"></i></button>
+                    </div>
+                    <div class="flex items-end justify-between mt-2 relative z-10 border-t border-rose-900/20 pt-4">
+                        <div>
+                            <p class="text-[10px] text-gray-400 uppercase tracking-widest font-bold mb-1">Bersih Selama</p>
+                            <p class="text-3xl font-black text-rose-400 text-glow">${diffDays} <span class="text-sm font-medium text-gray-400">Hari</span></p>
+                        </div>
+                        <button onclick="resetBadHabit('${habit.id}')" class="text-xs bg-rose-950/40 text-rose-300 px-4 py-2 rounded-xl border border-rose-800/50 hover:bg-rose-900/50 hover:text-white transition-colors" title="Saya gagal hari ini">
+                            <i class="fas fa-history mr-1"></i> Reset
+                        </button>
+                    </div>
+                `;
+                badHabitList.appendChild(div);
+            });
+        }
+
+        badHabitForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (badHabitInput.value.trim()) {
+                appData.badHabits.push({ id: generateId(), name: badHabitInput.value.trim(), startDate: new Date().toISOString() });
+                badHabitInput.value = ''; saveData(); renderBadHabits();
+            }
+        });
+
+        function deleteBadHabit(id) { appData.badHabits = appData.badHabits.filter(h => h.id !== id); saveData(); renderBadHabits(); }
+
+        function resetBadHabit(id) {
+            const habit = appData.badHabits.find(h => h.id === id);
+            if (habit) {
+                habit.startDate = new Date().toISOString(); saveData(); renderBadHabits();
+                showMessage('Jangan Menyerah!', 'Terkadang kita tergelincir, itu manusiawi. Tarik napas panjang, dan mari mulai hitungan bersih ini dari awal lagi. Kamu pasti bisa!');
+            }
+        }
+
+        // --- 5. FINANCE LOGIC ---
+        const financeForm = document.getElementById('finance-form');
+        
+        function renderFinance() {
+            appData.finance.cash = 0; appData.finance.savings = 0; appData.finance.emergency = 0; appData.finance.invest = 0;
+
+            appData.finance.transactions.forEach(t => {
+                const amt = parseFloat(t.amount);
+                switch(t.type) {
+                    case 'income': appData.finance.cash += amt; break;
+                    case 'expense': appData.finance.cash -= amt; break;
+                    case 'savings': appData.finance.cash -= amt; appData.finance.savings += amt; break;
+                    case 'emergency': appData.finance.cash -= amt; appData.finance.emergency += amt; break;
+                    case 'invest': appData.finance.cash -= amt; appData.finance.invest += amt; break;
+                }
+            });
+
+            document.getElementById('summary-cash').innerText = formatRp(appData.finance.cash);
+            document.getElementById('summary-savings').innerText = formatRp(appData.finance.savings);
+            document.getElementById('summary-emergency').innerText = formatRp(appData.finance.emergency);
+            document.getElementById('summary-invest').innerText = formatRp(appData.finance.invest);
+            
+            const netWorth = appData.finance.cash + appData.finance.savings + appData.finance.emergency + appData.finance.invest;
+            document.getElementById('net-worth-display').innerText = formatRp(netWorth);
+
+            const listEl = document.getElementById('finance-list');
+            listEl.innerHTML = '';
+            
+            const sortedTx = [...appData.finance.transactions].reverse();
+            sortedTx.forEach(t => {
+                const li = document.createElement('li');
+                li.className = 'flex justify-between items-center py-3 border-b border-purple-900/30 last:border-0 hover:bg-[#1A112C] px-2 rounded-lg transition-colors';
+                
+                let iconStr, colorBg, colorText, sign;
+                if(t.type === 'income') { iconStr = 'fa-arrow-down'; colorBg = 'bg-emerald-900/30 border-emerald-500/30'; colorText = 'text-emerald-400'; sign = '+'; }
+                else if(t.type === 'expense') { iconStr = 'fa-arrow-up'; colorBg = 'bg-rose-900/30 border-rose-500/30'; colorText = 'text-rose-400'; sign = '-'; }
+                else { iconStr = 'fa-exchange-alt'; colorBg = 'bg-blue-900/30 border-blue-500/30'; colorText = 'text-blue-400'; sign = '-'; }
+
+                const dateStr = new Date(t.date).toLocaleDateString('id-ID', {day:'numeric', month:'short'});
+
+                li.innerHTML = `
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-xl ${colorBg} border flex items-center justify-center ${colorText}">
+                            <i class="fas ${iconStr} text-sm"></i>
+                        </div>
+                        <div>
+                            <p class="text-sm font-bold text-gray-200">${t.desc}</p>
+                            <p class="text-xs text-gray-500 mt-0.5">${dateStr} • <span class="uppercase tracking-wider font-semibold ${colorText}">${t.type}</span></p>
+                        </div>
+                    </div>
+                    <div class="font-bold text-base ${colorText} bg-[#0A0612] px-3 py-1.5 rounded-lg border border-purple-900/50">
+                        ${sign} ${formatRp(t.amount)}
+                    </div>
+                `;
+                listEl.appendChild(li);
+            });
+        }
+
+        financeForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const type = document.getElementById('fin-type').value;
+            const desc = document.getElementById('fin-desc').value.trim();
+            const amount = document.getElementById('fin-amount').value;
+
+            if (desc && amount > 0) {
+                appData.finance.transactions.push({ id: generateId(), type, desc, amount: parseFloat(amount), date: new Date().toISOString() });
+                document.getElementById('fin-desc').value = ''; document.getElementById('fin-amount').value = '';
+                saveData(); renderFinance();
+                showMessage('Transaksi Sukses', `Transaksi "${desc}" berhasil dicatat dalam pembukuan.`);
+            }
+        });
+
+        function clearFinanceHistory() {
+            if(appData.finance.transactions.length === 0) return;
+            appData.finance.transactions = []; saveData(); renderFinance();
+            showMessage('Pembukuan Dibersihkan', 'Riwayat transaksi telah dihapus. Saldo dan aset dikembalikan ke 0.');
+        }
+
+        // --- CALCULATOR LOGIC ---
+        function calculateCompound() {
+            const P = parseFloat(document.getElementById('calc-principal').value) || 0;
+            const PMT = parseFloat(document.getElementById('calc-monthly').value) || 0;
+            const r = parseFloat(document.getElementById('calc-rate').value) / 100 || 0;
+            const t = parseFloat(document.getElementById('calc-years').value) || 0;
+            const n = 12; 
+
+            let amount = 0, totalInvested = P + (PMT * 12 * t);
+            if (r === 0) { amount = totalInvested; } 
+            else {
+                const ratePerPeriod = r / n, totalPeriods = n * t;
+                const compoundPrincipal = P * Math.pow(1 + ratePerPeriod, totalPeriods);
+                const futureValueOfSeries = PMT * ((Math.pow(1 + ratePerPeriod, totalPeriods) - 1) / ratePerPeriod);
+                amount = compoundPrincipal + futureValueOfSeries;
+            }
+
+            document.getElementById('calc-result').innerText = formatRp(amount);
+            document.getElementById('calc-total-invested').innerText = formatRp(totalInvested);
+            document.getElementById('calc-total-interest').innerText = formatRp(amount - totalInvested);
+        }
+
+        // --- 6. REFLECTIONS / JOURNALING LOGIC ---
+        const journalContainer = document.getElementById('journal-form-container');
+        
+        function newJournalEntry() {
+            journalContainer.classList.remove('hidden');
+            document.getElementById('journal-content').focus();
+        }
+
+        function cancelJournal() {
+            journalContainer.classList.add('hidden');
+            document.getElementById('journal-title').value = ''; document.getElementById('journal-content').value = '';
+        }
+
+        function saveJournal() {
+            const title = document.getElementById('journal-title').value.trim() || 'Refleksi Tanpa Judul';
+            const content = document.getElementById('journal-content').value.trim();
+            
+            if(content) {
+                appData.journals.unshift({ id: generateId(), title, content, date: new Date().toISOString() });
+                saveData(); renderJournals(); cancelJournal();
+                showMessage('Jurnal Tersimpan', 'Catatan pikiran dan evaluasimu hari ini telah disimpan dengan aman.');
+            }
+        }
+
+        function renderJournals() {
+            const list = document.getElementById('journal-list');
+            list.innerHTML = '';
+
+            if (appData.journals.length === 0) {
+                list.innerHTML = '<div class="text-center bg-[#130B24] border border-purple-900/30 rounded-2xl py-12 px-4"><i class="fas fa-feather-alt text-4xl text-purple-900/50 mb-3"></i><p class="text-gray-400 italic">Halaman jurnal masih kosong. Mulai tulis ceritamu hari ini.</p></div>';
+                return;
+            }
+
+            appData.journals.forEach(j => {
+                const dateObj = new Date(j.date);
+                const div = document.createElement('div');
+                div.className = 'bg-[#150D26] p-6 rounded-2xl border border-purple-900/40 shadow-lg relative group transition-colors hover:border-purple-500/40';
+                const formattedContent = j.content.replace(/\n/g, '<br>');
+
+                div.innerHTML = `
+                    <button onclick="deleteJournal('${j.id}')" class="absolute top-5 right-5 text-gray-600 hover:text-rose-400 opacity-0 group-hover:opacity-100 transition-opacity bg-[#0A0612] w-8 h-8 rounded-lg flex items-center justify-center"><i class="fas fa-trash-alt"></i></button>
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="bg-cyan-900/30 text-cyan-400 text-[10px] font-bold uppercase tracking-widest px-2.5 py-1 rounded border border-cyan-800/50">
+                            ${dateObj.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                        </span>
+                        <span class="text-xs text-gray-500 font-medium">${dateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
+                    <h4 class="text-xl font-bold text-white mb-3 font-serif">${j.title}</h4>
+                    <p class="text-gray-300 text-sm leading-relaxed">${formattedContent}</p>
+                `;
+                list.appendChild(div);
+            });
+        }
+
+        function deleteJournal(id) { appData.journals = appData.journals.filter(j => j.id !== id); saveData(); renderJournals(); }
+
+        // --- GOALS & DREAMS LOGIC ---
+        const goalForm = document.getElementById('goal-form');
+        const goalInput = document.getElementById('goal-input');
+        
+        function renderGoals() {
+            const list = document.getElementById('goal-list');
+            list.innerHTML = '';
+            appData.goals.forEach(goal => {
+                const li = document.createElement('li');
+                li.className = `flex items-center gap-3 p-3 rounded-xl border ${goal.done ? 'bg-[#0A0612] border-purple-900/20' : 'bg-[#150D26] border-cyan-900/40'} transition-colors`;
+                li.innerHTML = `
+                    <input type="checkbox" ${goal.done ? 'checked' : ''} onchange="toggleGoal('${goal.id}')" class="w-5 h-5 text-cyan-500 bg-[#0A0612] border-purple-500/50 rounded focus:ring-cyan-500 cursor-pointer">
+                    <span class="flex-1 text-sm ${goal.done ? 'line-through text-gray-600' : 'text-gray-200 font-medium'}">${goal.text}</span>
+                    <button onclick="deleteGoal('${goal.id}')" class="text-gray-500 hover:text-rose-400 text-sm p-1"><i class="fas fa-times"></i></button>
+                `;
+                list.appendChild(li);
+            });
+            document.getElementById('dreams-textarea').value = appData.dreams || "";
+        }
+
+        goalForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if(goalInput.value.trim()) {
+                appData.goals.push({ id: generateId(), text: goalInput.value.trim(), done: false });
+                goalInput.value = ''; saveData(); renderGoals();
+            }
+        });
+
+        function toggleGoal(id) {
+            const goal = appData.goals.find(g => g.id === id);
+            if(goal) { goal.done = !goal.done; saveData(); renderGoals(); }
+        }
+
+        function deleteGoal(id) { appData.goals = appData.goals.filter(g => g.id !== id); saveData(); renderGoals(); }
+
+        function saveDreams() {
+            appData.dreams = document.getElementById('dreams-textarea').value;
+            saveData();
+            const status = document.getElementById('dreams-save-status');
+            status.classList.remove('opacity-0');
+            setTimeout(() => { status.classList.add('opacity-0'); }, 2000);
+        }
+
+        // --- 7. DASHBOARD WIDGETS UPDATER ---
+        function updateDashboardWidgets() {
+            // Schedule Widget
+            const dashSchedule = document.getElementById('dashboard-schedule-list');
+            dashSchedule.innerHTML = '';
+            const pendingTasks = appData.schedule.filter(t => !t.done);
+            
+            if(pendingTasks.length === 0) {
+                dashSchedule.innerHTML = '<div class="h-full flex items-center justify-center text-center"><p class="text-sm text-gray-500 italic bg-[#0A0612] px-4 py-2 rounded-lg border border-purple-900/30">Semua tugas selesai! 🙌</p></div>';
+            } else {
+                pendingTasks.slice(0, 4).forEach(task => {
+                    dashSchedule.innerHTML += `
+                        <div class="flex items-center gap-3 text-sm text-gray-300 mb-2.5 bg-[#150D26] p-2.5 rounded-xl border border-purple-900/30">
+                            <i class="far fa-circle text-purple-500 text-xs"></i>
+                            <span class="truncate">${task.text}</span>
+                        </div>
+                    `;
+                });
+                if(pendingTasks.length > 4) dashSchedule.innerHTML += `<p class="text-xs text-purple-400 mt-2 font-medium text-center">+ ${pendingTasks.length - 4} tugas lainnya</p>`;
+            }
+
+            // Habits Widget
+            const dashHabits = document.getElementById('dashboard-habit-list');
+            dashHabits.innerHTML = '';
+            const today = getTodayStr();
+            
+            if(appData.habits.length === 0) {
+                dashHabits.innerHTML = '<p class="text-sm text-gray-500 italic bg-[#0A0612] p-3 rounded-xl border border-purple-900/30 text-center">Belum ada rutinitas.</p>';
+            } else {
+                appData.habits.forEach(habit => {
+                    const isDone = habit.history.includes(today);
+                    dashHabits.innerHTML += `
+                        <div class="flex justify-between items-center text-sm p-3 mb-2 rounded-xl border ${isDone ? 'bg-cyan-950/30 border-cyan-900/50 text-cyan-300' : 'bg-[#150D26] border-purple-900/30 text-gray-400'}">
+                            <span class="font-medium">${habit.name}</span>
+                            <i class="fas ${isDone ? 'fa-check-circle text-cyan-400' : 'fa-circle text-gray-600'}"></i>
+                        </div>
+                    `;
+                });
+            }
+
+            // Finance Widget
+            let totalIn = 0, totalOut = 0;
+            appData.finance.transactions.forEach(t => {
+                if(t.type === 'income') totalIn += parseFloat(t.amount);
+                else if(t.type === 'expense') totalOut += parseFloat(t.amount);
+            });
+            document.getElementById('dash-total-income').innerText = formatRp(totalIn);
+            document.getElementById('dash-total-expense').innerText = formatRp(totalOut);
+            
+            const totalBalance = appData.finance.cash + appData.finance.savings + appData.finance.emergency + appData.finance.invest;
+            document.getElementById('dash-balance').innerText = formatRp(totalBalance);
+        }
+
+        // --- 8. INITIALIZATION ---
+        function initApp() {
+            renderSchedule(); renderHabits(); renderBadHabits();
+            renderFinance(); renderJournals(); renderGoals();
+            updateDashboardWidgets(); calculateCompound();
+        }
+
+        function clearAllData() {
+            showMessage('Peringatan Reset Data', 'Apakah Anda yakin? Untuk menjaga keamanan data Anda, fitur penghapusan total secara paksa saat ini dinonaktifkan dalam mode pratinjau. Hapuslah data secara manual di masing-masing menu jika diperlukan.');
+        }
+
+        window.onload = () => {
+            initApp();
+            switchTab('dashboard');
+        };
+    </script>
+</body>
+</html>
